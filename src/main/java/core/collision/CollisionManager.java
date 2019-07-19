@@ -23,13 +23,13 @@ public class CollisionManager {
     public void registerCollisionAdapter(Class<? extends ICollideable> A,Class<? extends ICollideable> B,
                                             ICollisionAdapter adapter){
 
-        var amap = getAdapters().putIfAbsent(A,new HashMap<>()).putIfAbsent(B,new HashMap<>());
-
+        getAdapters().putIfAbsent(A,new HashMap<>()).put(B,adapter);
+        getAdapters().putIfAbsent(B,new HashMap<>()).put(A,adapter);
 
     }
 
-    public ICollisionAdapter getAdapter(){
-        return
+    public ICollisionAdapter getAdapter(Class<? extends ICollideable> A,Class<? extends ICollideable> B){
+        return getAdapters().get(A).get(B);
     }
 
 }
