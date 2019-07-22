@@ -1,5 +1,6 @@
 package core;
 
+import javax.lang.model.type.IntersectionType;
 import java.util.*;
 
 public class Structure {
@@ -45,6 +46,24 @@ public class Structure {
         getParent().ifPresent(Structure::recalculateAABB);
     }
 
+    public AABB getIntersectionAABB(Structure other) {
+        if(!getAABB().intersects(other.getAABB())) return null;
+
+        if(isBase()){
+            if(other.isBase()){
+                return getAABB();
+            }else{
+                return other.getSubStructures().stream().map(s -> s.getIntersectionAABB(this)).filter(a-> a!=null)
+                        .findAny().orElse( null);
+            }
+        }else{
+
+            return getSubStructures().stream().map(s -> s.getIntersectionAABB(other)).filter(a-> a!=null)
+                    .findAny().orElse( null);
+
+        }
+    }
+
 
     public boolean intersects(Structure other) {
         if(!getAABB().intersects(other.getAABB())) return false;
@@ -53,7 +72,7 @@ public class Structure {
             if(other.isBase()){
                 return true;
             }else{
-                return other.getSubStructures().stream().anyMatch(s -> s.intersects(other));
+                return other.getSubStructures().stream().anyMatch(s -> s.intersects(this));
             }
         }else{
 
@@ -69,6 +88,15 @@ public class Structure {
 
     }
 
+    public void whileIntersects(Structure other, IntersectionCallback callback){
+        AABB target = getIntersectionAABB(other);
+
+        while (target !=null){
+            while (other.intersects(target))callback.onIntersect(other,target);
+            target = getIntersectionAABB(other);
+        }
+    }
+
     public void attach(Structure... ss){
         if(isBase()) throw  new UnsupportedOperationException();
 
@@ -82,7 +110,7 @@ public class Structure {
         recalculateParentAABB();
     }
 
-    public boolean deattach(){
+    public boolean detach(){
         if(!getParent().isPresent()) return false;
 
         if(!getParent().get().getSubStructures().remove(this))

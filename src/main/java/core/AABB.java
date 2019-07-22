@@ -10,8 +10,12 @@ public class AABB {
     private int x,y,width,height;
 
     public AABB(Point p, int width,int height){
-        this.x = p.getX();
-        this.y = p.getY();
+       this(p.getX(),p.getY(),width,height);
+    }
+
+    public AABB(int x,int y, int width,int height){
+        this.x = x;
+        this.y = y;
         this.width = width;
         this.height = height;
     }
@@ -23,7 +27,9 @@ public class AABB {
                 Math.abs(a.getY()-b.getY()));
     }
 
-    AABB translate(int dx,int dy){
+
+
+    public AABB translate(int dx,int dy){
         return new AABB(new Point(getX()+dx,getY()+dy),getWidth(),getHeight());
     }
 
@@ -36,7 +42,7 @@ public class AABB {
     }
 
     public boolean intersects(AABB other){
-        if(width == 0 && height ==0) return false;
+        if(width == 0 || height ==0) return false;
 
         return getX() <= other.getX() + other.getWidth() &&
                 getX() + getWidth() >= other.getX() &&
@@ -54,6 +60,7 @@ public class AABB {
         return AABB.fromPoints(new Point(Math.min(minA.getX(),minB.getX()),Math.min(minA.getY(),minB.getY())),
                 new Point(Math.max(maxA.getX(),maxB.getX()),Math.max(maxA.getY(),maxB.getY())));
     }
+
     public int getX() {
         return x;
     }

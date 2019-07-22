@@ -14,7 +14,7 @@ public class Point {
         this.y = y;
     }
 
-    public Point offset(int dx, int dy){
+    public Point translate(int dx, int dy){
         return new Point(getX()+dx,getY()+dy);
     }
 
