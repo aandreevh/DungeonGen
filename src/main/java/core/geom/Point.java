@@ -1,4 +1,4 @@
-package core;
+package core.geom;
 
 import java.util.Objects;
 
@@ -6,6 +6,13 @@ public class Point {
 
 
     public static final Point ZERO = new Point(0,0);
+
+    public static final Point DIRECTIONS[] = {
+      new Point(1,0),
+            new Point(0,1),
+            new Point(-1,0),
+            new Point(0,-1),
+    };
 
     private int x,y;
 
@@ -16,6 +23,10 @@ public class Point {
 
     public Point translate(int dx, int dy){
         return new Point(getX()+dx,getY()+dy);
+    }
+
+    public Point mul(int ds){
+        return new Point(getX()*ds,getY()*ds);
     }
 
 

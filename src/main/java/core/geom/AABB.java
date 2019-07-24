@@ -1,4 +1,4 @@
-package core;
+package core.geom;
 
 import java.util.Objects;
 
@@ -29,6 +29,7 @@ public class AABB {
 
 
 
+    public AABB translate(Point p){ return translate(p.getX(),p.getY());}
     public AABB translate(int dx,int dy){
         return new AABB(new Point(getX()+dx,getY()+dy),getWidth(),getHeight());
     }
@@ -44,10 +45,10 @@ public class AABB {
     public boolean intersects(AABB other){
         if(width == 0 || height ==0) return false;
 
-        return getX() <= other.getX() + other.getWidth() &&
-                getX() + getWidth() >= other.getX() &&
-                getY() <= other.getY() + other.getHeight() &&
-                getY() + getHeight() >= other.getY();
+        return getX() <= other.getX() + other.getWidth()-1 &&
+                getX() + getWidth()-1>= other.getX() &&
+                getY() <= other.getY() + other.getHeight()-1 &&
+                getY() + getHeight()-1 >= other.getY();
     }
 
     public AABB append(AABB other){

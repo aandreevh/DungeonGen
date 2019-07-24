@@ -1,6 +1,8 @@
-package core;
+package core.struct;
 
-import javax.lang.model.type.IntersectionType;
+import core.geom.AABB;
+import core.geom.Point;
+
 import java.util.*;
 
 public class Structure {
@@ -40,27 +42,30 @@ public class Structure {
         return Optional.ofNullable(parent);
     }
 
+    public void translate(Point p){
+        translate(p.getX(),p.getY());
+    }
 
     public void translate(int dx, int dy) {
         translateUnsafe(dx,dy);
         getParent().ifPresent(Structure::recalculateAABB);
     }
 
-    public AABB getIntersectionAABB(Structure other) {
-        if(!getAABB().intersects(other.getAABB())) return null;
+    public Optional<Map.Entry<Structure,Structure>> getIntersectionStructure(Structure other) {
+        if(!getAABB().intersects(other.getAABB())) return Optional.empty();
 
         if(isBase()){
             if(other.isBase()){
-                return getAABB();
+                return Optional.of(Map.entry(this,other));
             }else{
-                return other.getSubStructures().stream().map(s -> s.getIntersectionAABB(this)).filter(a-> a!=null)
-                        .findAny().orElse( null);
+                return other.getSubStructures().stream().map(s -> s.getIntersectionStructure(this))
+                        .filter(Optional::isPresent)
+                        .findAny().orElse( Optional.empty());
             }
         }else{
-
-            return getSubStructures().stream().map(s -> s.getIntersectionAABB(other)).filter(a-> a!=null)
-                    .findAny().orElse( null);
-
+            return getSubStructures().stream().map(s -> s.getIntersectionStructure(other))
+                    .filter(Optional::isPresent)
+                    .findAny().orElse( Optional.empty());
         }
     }
 
@@ -88,21 +93,13 @@ public class Structure {
 
     }
 
-    public void whileIntersects(Structure other, IntersectionCallback callback){
-        AABB target = getIntersectionAABB(other);
-
-        while (target !=null){
-            while (other.intersects(target))callback.onIntersect(other,target);
-            target = getIntersectionAABB(other);
-        }
-    }
 
     public void attach(Structure... ss){
         if(isBase()) throw  new UnsupportedOperationException();
 
         for(Structure s : ss){
             if (this.equals(s)) continue;
-            if(!s.setParent(this)) continue;
+            if(!s.setParent(this)) throw new  IllegalArgumentException("Structure has parent");
             this.getSubStructures().add(s);
             setAABB(getAABB().append(s.getAABB()));
         }
