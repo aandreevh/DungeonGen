@@ -1,171 +1,156 @@
-package core.struct;
+package core.struct
 
-import core.geom.AABB;
-import core.geom.Point;
+import core.geom.AABB
+import core.geom.Point
 
-import java.util.*;
+import java.util.*
 
-public class Structure {
+class Structure : Iterable<Structure> {
 
-    private Structure parent = null;
+    private var parent: Structure? = null
 
-    private AABB globalAABB;
-    private ArrayList<Structure> subStructures = new ArrayList<>();
-    private boolean isBase;
+    var aabb: AABB? = null
+        protected set
+    private val subStructures = ArrayList<Structure>()
+    var isBase: Boolean = false
+        protected set
 
-    public Structure() {
-        setAABB(AABB.ZERO);
-        setIsBase(false);
+    constructor() {
+        aabb = AABB.ZERO
+        isBase = false
     }
 
-    public Structure(AABB aabb){
-        setAABB(aabb);
-        setIsBase(true);
-    }
-
-    public boolean isBase(){
-        return isBase;
-    }
-
-    public AABB getAABB() {
-        return this.globalAABB;
+    constructor(aabb: AABB) {
+        aabb = aabb
+        isBase = true
     }
 
 
-    public ArrayList<Structure> getSubStructures() {
-        if(isBase()) throw new UnsupportedOperationException();
+    fun getSubStructures(): ArrayList<Structure> {
+        if (isBase) throw UnsupportedOperationException()
 
-        return subStructures;
+        return subStructures
     }
 
-    public Optional<Structure> getParent() {
-        return Optional.ofNullable(parent);
+    fun getParent(): Optional<Structure> {
+        return Optional.ofNullable(parent)
     }
 
-    public void translate(Point p){
-        translate(p.getX(),p.getY());
+    fun setBaseAABB(aabb: AABB) {
+        if (!isBase) throw UnsupportedOperationException("cannot set base AABB to not base structure")
+        this.aabb = aabb
+        recalculateParentAABB()
     }
 
-    public void translate(int dx, int dy) {
-        translateUnsafe(dx,dy);
-        getParent().ifPresent(Structure::recalculateAABB);
+    fun translate(p: Point) {
+        translate(p.x, p.y)
     }
 
-    public Optional<Map.Entry<Structure,Structure>> getIntersectionStructure(Structure other) {
-        if(!getAABB().intersects(other.getAABB())) return Optional.empty();
+    fun translate(dx: Int, dy: Int) {
+        translateUnsafe(dx, dy)
+        recalculateParentAABB()
+    }
 
-        if(isBase()){
-            if(other.isBase()){
-                return Optional.of(Map.entry(this,other));
-            }else{
-                return other.getSubStructures().stream().map(s -> s.getIntersectionStructure(this))
-                        .filter(Optional::isPresent)
-                        .findAny().orElse( Optional.empty());
+    fun getIntersectionStructure(other: Structure): Optional<Entry<Structure, Structure>> {
+        if (!aabb!!.intersects(other.aabb)) return Optional.empty<Entry<Structure, Structure>>()
+
+        return if (isBase) {
+            if (other.isBase) {
+                Optional.of<Entry<Structure, Structure>>(Map.entry<Structure, Structure>(this, other))
+            } else {
+                other.getSubStructures().stream().map<Optional<Entry<Structure, Structure>>> { s -> s.getIntersectionStructure(this) }
+                        .filter(Predicate<Optional<Entry<Structure, Structure>>> { it.isPresent() })
+                        .findAny().orElse(Optional.empty<Entry<Structure, Structure>>())
             }
-        }else{
-            return getSubStructures().stream().map(s -> s.getIntersectionStructure(other))
-                    .filter(Optional::isPresent)
-                    .findAny().orElse( Optional.empty());
+        } else {
+            getSubStructures().stream().map<Optional<Entry<Structure, Structure>>> { s -> s.getIntersectionStructure(other) }
+                    .filter(Predicate<Optional<Entry<Structure, Structure>>> { it.isPresent() })
+                    .findAny().orElse(Optional.empty<Entry<Structure, Structure>>())
         }
     }
 
 
-    public boolean intersects(Structure other) {
-        if(!getAABB().intersects(other.getAABB())) return false;
+    fun intersects(other: Structure): Boolean {
+        if (!aabb!!.intersects(other.aabb)) return false
 
-        if(isBase()){
-            if(other.isBase()){
-                return true;
-            }else{
-                return other.getSubStructures().stream().anyMatch(s -> s.intersects(this));
+        return if (isBase) {
+            if (other.isBase) {
+                true
+            } else {
+                other.getSubStructures().stream().anyMatch { s -> s.intersects(this) }
             }
-        }else{
+        } else {
 
-            return getSubStructures().stream().anyMatch(s -> s.intersects(other));
+            getSubStructures().stream().anyMatch { s -> s.intersects(other) }
 
         }
     }
 
-    public boolean intersects(AABB aabb) {
-        if(!getAABB().intersects(aabb)) return false;
-        if(isBase()) return true;
-        return getSubStructures().stream().anyMatch(s -> s.intersects(aabb));
+    fun intersects(aabb: AABB): Boolean {
+        if (!aabb.intersects(aabb)) return false
+        return if (isBase) true else getSubStructures().stream().anyMatch { s -> s.intersects(aabb) }
 
     }
 
 
-    public void attach(Structure... ss){
-        if(isBase()) throw  new UnsupportedOperationException();
+    fun attach(vararg ss: Structure) {
+        if (isBase) throw UnsupportedOperationException()
 
-        for(Structure s : ss){
-            if (this.equals(s)) continue;
-            if(!s.setParent(this)) throw new  IllegalArgumentException("Structure has parent");
-            this.getSubStructures().add(s);
-            setAABB(getAABB().append(s.getAABB()));
+        for (s in ss) {
+            if (this == s) continue
+            if (!s.setParent(this)) throw IllegalArgumentException("Structure has parent")
+            this.getSubStructures().add(s)
+            aabb = aabb!!.append(s.aabb!!)
         }
 
-        recalculateParentAABB();
+        recalculateParentAABB()
     }
 
-    public boolean detach(){
-        if(!getParent().isPresent()) return false;
+    fun detach() {
+        if (!getParent().isPresent) throw NullPointerException("Structure does not have parent")
 
-        if(!getParent().get().getSubStructures().remove(this))
-           throw  new RuntimeException("Invalid structure hierarchy");
+        if (!getParent().get().getSubStructures().remove(this))
+            throw RuntimeException("Invalid structure hierarchy")
 
-        getParent().get().recalculateAABB();
-
-       return removeParent();
+        getParent().get().recalculateAABB()
+        this.parent = null
     }
 
-
-    protected void setAABB(AABB aabb){
-        this.globalAABB = aabb;
-    }
-
-    protected void setIsBase(boolean flag){
-        isBase = flag;
-    }
-
-    private void translateUnsafe(int dx, int dy) {
-        if(isBase()){
-            setAABB(getAABB().translate(dx,dy));
-        }else {
-            getSubStructures().forEach(s -> s.translateUnsafe(dx, dy));
-            setAABB(getAABB().translate(dx, dy));
+    private fun translateUnsafe(dx: Int, dy: Int) {
+        if (isBase) {
+            aabb = aabb!!.translate(dx, dy)
+        } else {
+            getSubStructures().forEach { s -> s.translateUnsafe(dx, dy) }
+            aabb = aabb!!.translate(dx, dy)
         }
     }
 
+    private fun setParent(s: Structure): Boolean {
+        if (getParent().isPresent) return false
+        this.parent = s
 
-    private boolean removeParent(){
-        if(!getParent().isPresent()) return false;
-        this.parent = null;
-
-        return true;
+        return true
     }
 
-    private boolean setParent(Structure s){
-        if(getParent().isPresent()) return false;
-        this.parent = s;
-
-        return true;
-    }
-    private void recalculateParentAABB(){
-        getParent().ifPresent(Structure::recalculateAABB);
+    private fun recalculateParentAABB() {
+        getParent().ifPresent(Consumer<Structure> { it.recalculateAABB() })
     }
 
-    private void recalculateAABB(){
-        if(isBase()) throw new UnsupportedOperationException();
-        setAABB(AABB.ZERO);
-        getSubStructures().forEach(s -> setAABB(getAABB().append(s.getAABB())));
-        recalculateParentAABB();
+    private fun recalculateAABB() {
+        if (isBase) throw UnsupportedOperationException()
+        aabb = AABB.ZERO
+        getSubStructures().forEach { s -> aabb = aabb!!.append(s.aabb!!) }
+        recalculateParentAABB()
     }
 
-    @Override
-    public String toString() {
+    override fun toString(): String {
         return "Structure{" +
-                "AABB=" + globalAABB +
-                (isBase()? "" :  ", subStructures=" + subStructures) +
-                '}';
+                "AABB=" + aabb +
+                (if (isBase) "" else ", subStructures=$subStructures") +
+                '}'.toString()
+    }
+
+    override fun iterator(): Iterator<Structure> {
+        return getSubStructures().iterator()
     }
 }

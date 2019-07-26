@@ -1,6 +1,7 @@
 package core.struct;
 
 import java.util.Collection;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
@@ -8,11 +9,11 @@ public class StructureBuilder {
 
 
     private Structure world = new Structure();
-    private BiFunction<Structure,Structure,Boolean> callback;
+    private BiConsumer<Structure,Structure> callback;
 
-    public StructureBuilder( ){this.callback = (w,s)->true;}
+    public StructureBuilder( ){this.callback = (w,s)->w.attach(s);}
 
-    public StructureBuilder(BiFunction<Structure,Structure,Boolean> callback){this.callback = callback;}
+    public StructureBuilder(BiConsumer<Structure,Structure> callback){this.callback = callback;}
 
 
     public Structure build(Consumer<Structure> onBuildCallback){
@@ -25,7 +26,7 @@ public class StructureBuilder {
     }
 
     public StructureBuilder add(Collection<Structure> objects){
-        objects.stream().filter(s -> callback.apply(getWorld(),s)).forEach(getWorld()::attach);
+        objects.stream().forEach(o->callback.accept(getWorld(),o));
         return this;
     }
 

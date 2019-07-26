@@ -7,15 +7,16 @@ import core.struct.Structures;
 
 import java.util.Collection;
 import java.util.Random;
-import java.util.function.BiFunction;
-import java.util.stream.Stream;
+import java.util.function.BiConsumer;
 
-public class BasicMapStructureGenerator extends StructureGenerator {
+public class BasicMapStructureGenerator implements IStructureGenerator {
 
 
+    private Random rand;
     private Collection<Structure> structures;
-    private BiFunction<Structure,Structure,Boolean> callback;
+    private BiConsumer<Structure,Structure> callback;
     private StructureBuilder builder;
+
 
     protected Collection<Structure> getStructures(){
         return this.structures;
@@ -23,15 +24,24 @@ public class BasicMapStructureGenerator extends StructureGenerator {
 
 
     public BasicMapStructureGenerator(Random rand, Collection<Structure> structs){
-        this(rand,structs,(u,v)->true);
+        this(rand,structs,(w,s)->w.attach(s));
     }
 
 
     public BasicMapStructureGenerator(Random rand, Collection<Structure> structs,
-                                      BiFunction<Structure, Structure, Boolean> callback){
-        super(rand);
+                                      BiConsumer<Structure, Structure> callback){
+        setRandom(rand);
         this.structures = structs;
         this.callback = callback;
+    }
+
+    private void setRandom(Random rand){
+        this.rand = rand;
+    }
+
+    @Override
+    public Random getRandom() {
+        return this.rand;
     }
 
     @Override
@@ -42,14 +52,14 @@ public class BasicMapStructureGenerator extends StructureGenerator {
             Point p = Point.ZERO;
 
             if(w.getSubStructures().size()>0)
-                w.getSubStructures().get(getRandom().nextInt(w.getSubStructures().size())).getAABB().getMaxPoint();
+               p= w.getSubStructures().get(getRandom().nextInt(w.getSubStructures().size())).getAABB().getMaxPoint();
 
             s.translate(p);
 
             final Point vec = Point.DIRECTIONS[getRandom().nextInt(4)];
             Structures.whileIntersects(s,w, (ss, t)-> s.translate(vec));
 
-            return callback.apply(w,s);
+            callback.accept(w,s);
         });
 
         builder.add(getStructures());
@@ -57,8 +67,4 @@ public class BasicMapStructureGenerator extends StructureGenerator {
         return builder.build();
     }
 
-    @Override
-    public Stream<Structure> stream() {
-        throw new UnsupportedOperationException();
-    }
 }

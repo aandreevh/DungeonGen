@@ -11,15 +11,16 @@ import java.util.function.Consumer;
 public class Structures {
 
 
-public static void whileIntersects(Structure object, Structure world, BiConsumer<Structure,Structure> callback){
-    Optional<Map.Entry<Structure,Structure> > target = world.getIntersectionStructure(object);
+    /** Slow **/
+public static void whileIntersects(Structure a, Structure b, BiConsumer<Structure,Structure> callback){
+    Optional<Map.Entry<Structure,Structure> > target = b.getIntersectionStructure(a);
 
     while (target.isPresent()){
 
         while (target.get().getKey().intersects(target.get().getValue()))
             callback.accept(target.get().getKey(),target.get().getValue());
 
-        target = world.getIntersectionStructure(object);
+        target = b.getIntersectionStructure(a);
     }
 }
 }
