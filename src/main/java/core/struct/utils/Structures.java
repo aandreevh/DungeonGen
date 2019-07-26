@@ -1,4 +1,4 @@
-package core.struct;
+package core.struct.utils;
 
 import core.geom.AABB;
 import core.struct.Structure;

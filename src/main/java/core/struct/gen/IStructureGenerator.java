@@ -6,7 +6,7 @@ import core.struct.Structure;
 import java.util.Random;
 import java.util.stream.Stream;
 
-public interface StructureGenerator {
+public interface IStructureGenerator {
 
      Random getRandom();
 

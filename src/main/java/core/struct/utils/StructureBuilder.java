@@ -1,8 +1,9 @@
-package core.struct;
+package core.struct.utils;
+
+import core.struct.Structure;
 
 import java.util.Collection;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 public class StructureBuilder {

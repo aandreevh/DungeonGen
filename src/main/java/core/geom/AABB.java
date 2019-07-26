@@ -20,13 +20,19 @@ public class AABB {
         this.height = height;
     }
 
-    public static AABB fromPoints(Point a,Point b){
-        return new AABB(new Point(Math.min(a.getX(),b.getX()),
+    public  AABB(Point a,Point b){
+        this(new Point(Math.min(a.getX(),b.getX()),
                 Math.min(a.getY(),b.getY())),
                 Math.abs(a.getX()-b.getX()),
                 Math.abs(a.getY()-b.getY()));
     }
 
+    public boolean contains(Point p){
+        return p.getX() >= getX() &&
+                p.getY() >= getY() &&
+                p.getX() < getX()+getWidth() &&
+                p.getY() < getY()+getHeight();
+    }
 
 
     public AABB translate(Point p){ return translate(p.getX(),p.getY());}
@@ -58,8 +64,12 @@ public class AABB {
         Point maxA = getMaxPoint();
         Point maxB = other.getMaxPoint();
 
-        return AABB.fromPoints(new Point(Math.min(minA.getX(),minB.getX()),Math.min(minA.getY(),minB.getY())),
+        return new AABB(new Point(Math.min(minA.getX(),minB.getX()),Math.min(minA.getY(),minB.getY())),
                 new Point(Math.max(maxA.getX(),maxB.getX()),Math.max(maxA.getY(),maxB.getY())));
+    }
+
+    public AABB shofiset(int dx,int dy,int dw,int dh){
+        return new AABB(getX()+dx,getY()+dy,getWidth()+dw,getHeight()+dh);
     }
 
     public int getX() {

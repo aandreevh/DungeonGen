@@ -1,4 +1,10 @@
 package core.struct.gen;
 
-public class IStreamedStructureGenerator {
+import core.struct.Structure;
+
+import java.util.stream.Stream;
+
+public interface IStreamedStructureGenerator extends IStructureGenerator {
+
+    public Stream<Structure> stream();
 }

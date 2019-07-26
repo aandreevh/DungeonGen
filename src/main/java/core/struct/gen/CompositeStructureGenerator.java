@@ -2,14 +2,14 @@ package core.struct.gen;
 
 import core.geom.Point;
 import core.struct.Structure;
-import core.struct.StructureBuilder;
-import core.struct.Structures;
+import core.struct.utils.StructureBuilder;
+import core.struct.utils.Structures;
 
 import java.util.Collection;
 import java.util.Random;
 import java.util.function.BiConsumer;
 
-public class BasicMapStructureGenerator implements IStructureGenerator {
+public class CompositeStructureGenerator implements IStructureGenerator {
 
 
     private Random rand;
@@ -23,13 +23,13 @@ public class BasicMapStructureGenerator implements IStructureGenerator {
     }
 
 
-    public BasicMapStructureGenerator(Random rand, Collection<Structure> structs){
+    public CompositeStructureGenerator(Random rand, Collection<Structure> structs){
         this(rand,structs,(w,s)->w.attach(s));
     }
 
 
-    public BasicMapStructureGenerator(Random rand, Collection<Structure> structs,
-                                      BiConsumer<Structure, Structure> callback){
+    public CompositeStructureGenerator(Random rand, Collection<Structure> structs,
+                                       BiConsumer<Structure, Structure> callback){
         setRandom(rand);
         this.structures = structs;
         this.callback = callback;
